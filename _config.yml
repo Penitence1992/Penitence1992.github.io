@@ -103,4 +103,6 @@ theme: fluid
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
-  type: ''
+  type: git
+  repo: https://github.com/Penitence1992/Penitence1992.github.io
+  branch: gh-pages
