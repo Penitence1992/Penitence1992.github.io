@@ -1,7 +1,9 @@
 name: Hexo Build and Deploy
 
 on:
-  - master
+  push:
+    branches:
+      - master
 
 jobs:
   build:
