@@ -1320,11 +1320,6 @@ hexo-tag-fontawesome@^1.1.0:
   resolved "https://npm.ascs.tech/repository/npm-public/hexo-tag-fontawesome/-/hexo-tag-fontawesome-1.1.0.tgz#6d9ca0def603058318ea7b74521a1f2cdedfe65e"
   integrity sha1-bZyg3vYDBYMY6nt0UhofLN7f5l4=
 
-hexo-theme-next-anchor@^1.0.3:
-  version "1.0.3"
-  resolved "https://npm.ascs.tech/repository/npm-public/hexo-theme-next-anchor/-/hexo-theme-next-anchor-1.0.3.tgz#23a17b8e11afe16370f1ab25e2d1b34134f0c09f"
-  integrity sha1-I6F7jhGv4WNw8asl4tGzQTTwwJ8=
-
 hexo-util@1.9.0:
   version "1.9.0"
   resolved "https://npm.ascs.tech/repository/npm-public/hexo-util/-/hexo-util-1.9.0.tgz#0018429319720599253b2a3ddde0c5e4e4cfc652"
