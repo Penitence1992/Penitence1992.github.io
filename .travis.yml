@@ -1,0 +1,18 @@
+language: node_js
+
+node_js: stable
+
+install:
+  - yarn install
+
+before_script:
+  - git submodule init
+  - git submodule update
+
+script:
+  - hexo clean
+  - hexo deploy
+
+branches:
+  only:
+    - master
