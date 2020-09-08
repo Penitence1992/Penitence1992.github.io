@@ -11,7 +11,16 @@ before_script:
 
 script:
   - hexo clean
-  - hexo deploy
+  - hexo generate
+
+after_script:
+  - cd ./public
+  - git init
+  - git config user.name "penitence1992"
+  - git config user.email "penitence.renjie@gmail.com"
+  - git add .
+  - git commit -m "${TRAVIS_COMMIT_MESSAGE}"
+  - git push --force --quiet "https://${GH_TOKEN}@github.com/Penitence1992/Penitence1992.github.io.git" master:gh-pages
 
 branches:
   only:
