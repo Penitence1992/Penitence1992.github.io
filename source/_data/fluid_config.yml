@@ -1,5 +1,5 @@
 global_banner: &global_banner
-  banner_img: /img/bg/index.jpeg
+  banner_img: /image/bg/index.jpeg
   banner_img_height: 70
   banner_mask_alpha: 0.3
 index:

@@ -1,0 +1,68 @@
+menu:
+  home: / || fa fa-home
+  about: /about/ || fa fa-user
+  tags: /tags/ || fa fa-tags
+  categories: /categories/ || fa fa-th
+  archives: /archives/ || fa fa-archive
+#  schedule: /schedule/ || fa fa-calendar
+  sitemap: /sitemap.xml || fa fa-sitemap
+#  commonweal: /404/ || fa fa-heartbeat
+avatar:
+  url: /image/other/avatar.jpg
+  rounded: true
+scheme: Gemini
+
+darkmode: true
+
+toc:
+  enable: true
+  number: true
+  wrap: true
+
+social:
+  GitHub: https://github.com/penitence1992 || github
+
+scroll_to_more: true
+#自动摘要
+auto_excerpt:
+  enable: true
+post_wordcount:                # 字数统计。依赖https://github.com/willin/hexo-wordcount
+  item_text: true              # 是否显示文字
+  wordcount: false             # 显示字数
+  min2read: false              # 显示阅读时间
+  totalcount: false            # 显示总数
+  separated_meta: true         # 是否分开
+
+symbols_count_time:
+  separated_meta: true
+  item_text_post: true
+  item_text_total: false
+back2top:
+  sidebar: true
+  scrollpercent: true
+# Reading progress bar
+reading_progress:
+  enable: true
+bookmark:
+  enable: true
+
+codeblock:
+  highlight_theme: night eighties
+
+######## 自定义插件
+
+
+anchor:
+  enable: true
+  color: '#0e83cd'
+  position: right # If left, anchors will always be visible.
+  margin: 7px
+  text: '#'
+  icon:
+    # If true, the `text` option will be ignored.
+    enable: false
+    # By default, NexT has built-in FontAwesome support.
+    # This option means `font-family: FontAwesome`, so DO Not change it.
+    # Also you can choose ForkAwesome, but that's another story.
+    font: FontAwesome
+    content: \f0c1 # CSS content for FontAwesome & ForkAwesome.
