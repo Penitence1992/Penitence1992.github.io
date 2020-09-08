@@ -17,6 +17,6 @@ jobs:
           key: ${{runner.OS}}-${{hashFiles('**/package-lock.json')}}
       - uses: yrpang/github-actions-hexo@master
         with:
-          deploykey: ${{ secrets.GITHUB_TOKEN }}
+          deploykey: ${{ secrets.DEPLOY_KEY }}
           username: Penitence1992
           email: penitence.renjie@gmail.com
