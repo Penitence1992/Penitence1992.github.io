@@ -19,6 +19,9 @@ toc:
   number: true
   wrap: true
 
+custom_file_path:
+  style: source/_data/styles.styl
+
 social:
   GitHub: https://github.com/penitence1992 || github
 
