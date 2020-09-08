@@ -1,0 +1,20 @@
+name: Hexo Build and Deploy
+
+on:
+  - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Cache node modules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: ${{runner.OS}}-${{hashFiles('**/package-lock.json')}}
+      - uses: yrpang/github-actions-hexo@master
+        with:
+          deploykey: ${{ secrets.GITHUB_TOKEN }}
+          username: Penitence1992
+          email: penitence.renjie@gmail.com
