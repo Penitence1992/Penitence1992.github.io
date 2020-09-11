@@ -1,14 +1,19 @@
 ---
 title: Java集合-CopyOnWriteArrayList
-date: 2020-09-01 15:13:43
 categories:
- - [java基础, 集合, 同步容器]
- - [java基础, 并发编程, 同步容器]
+  - - java基础
+    - 集合
+    - JUC
+  - - java基础
+    - 并发编程
+    - JUC
 tags:
- - java基础
- - 集合
- - List
- - 并发编程
+  - java基础
+  - 集合
+  - List
+  - 并发编程
+abbrlink: a4506164
+date: 2020-09-01 15:13:43
 ---
 
 线程安全的集合类, 当执行`add`,`set`等修改操作的时候, 都会复制一遍数组来实现, 因此起名`CopyOnWriteArrayList`
@@ -37,7 +42,7 @@ public CopyOnWriteArrayList(E[] toCopyIn) {
 }
 ```
 
-- CopyOnWriteArrayList声明了一个[重入锁(ReentrantLock)](../Concurrent/lock/ReentrantLock.md), 因此内部都是使用这个锁来实现线程安全的
+- CopyOnWriteArrayList声明了一个{% post_link collection/Concurrent/lock/ReentrantLock 重入锁%}, 因此内部都是使用这个锁来实现线程安全的
 
 - set(index, element) 方法中可以看到,当传入值和当前值不一致的时候, 会进行一次复制, 复制后再赋值给`array`变量
 

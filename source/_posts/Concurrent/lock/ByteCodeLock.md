@@ -1,13 +1,16 @@
 ---
 title: 字节码层面看看synchronized的实现
-date: 2020-09-07 11:27:51
 categories:
- - [java基础, 并发编程, 锁]
+  - - java基础
+    - 并发编程
+    - 锁
 tags:
- - 锁
- - java基础
- - 并发编程
- - 字节码
+  - 锁
+  - java基础
+  - 并发编程
+  - 字节码
+abbrlink: a7f9fab1
+date: 2020-09-07 11:27:51
 ---
 
 今天我们由字节码层面来看看`synchronized`的实现

@@ -1,12 +1,14 @@
 ---
 title: Java集合-ArrayList
-date: 2020-09-01 14:31:43
 categories:
- - [java基础, 集合]
+  - - java基础
+    - 集合
 tags:
- - java基础
- - 集合
- - List
+  - java基础
+  - 集合
+  - List
+abbrlink: f331329e
+date: 2020-09-01 14:31:43
 ---
 
 基于`数组`实现的一个集合, 存放内容有序, 线程不安全, 允许插入Null元素

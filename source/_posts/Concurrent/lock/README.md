@@ -1,12 +1,15 @@
 ---
 title: 认识下Java并发编程中的锁
-date: 2020-09-07 10:35:31
 categories:
- - [java基础, 并发编程, 锁]
+  - - java基础
+    - 并发编程
+    - 锁
 tags:
- - 锁
- - java基础
- - 并发编程
+  - 锁
+  - java基础
+  - 并发编程
+abbrlink: 7747b5e
+date: 2020-09-07 10:35:31
 ---
 
 > [不可不说的Java"锁"事](https://tech.meituan.com/2018/11/15/java-lock.html)

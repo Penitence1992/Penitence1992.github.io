@@ -1,12 +1,15 @@
 ---
 title: 读写锁
-date: 2020-09-07 16:32:51
 categories:
- - [java基础, 并发编程, 锁]
+  - - java基础
+    - 并发编程
+    - 锁
 tags:
- - 锁
- - java基础
- - 并发编程
+  - 锁
+  - java基础
+  - 并发编程
+abbrlink: a73eaf8d
+date: 2020-09-07 16:32:51
 ---
 # ReentrantReadWriteLock
 

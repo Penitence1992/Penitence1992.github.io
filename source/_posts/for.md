@@ -1,10 +1,10 @@
 ---
 title: 加强型for循环和iterator
-date: 2020-08-30 13:26:38
-excerpt: |-
-   关于forEach循环和使用iterator循环遍历的使用场景等
+excerpt: 关于forEach循环和使用iterator循环遍历的使用场景等
 categories:
- - [java基础]
+  - - java基础
+abbrlink: 244da60f
+date: 2020-08-30 13:26:38
 ---
 # 加强型for循环和iterator
 

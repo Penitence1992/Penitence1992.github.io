@@ -1,11 +1,13 @@
 ---
 title: JVM文章整合
-date: 2020-09-04 14:02:35
 categories:
- - [java基础, JVM]
+  - - java基础
+    - JVM
 tags:
- - java基础
- - JVM
+  - java基础
+  - JVM
+abbrlink: 55a725f2
+date: 2020-09-04 14:02:35
 ---
 # JVM
 

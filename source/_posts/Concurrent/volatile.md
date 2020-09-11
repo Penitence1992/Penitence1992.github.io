@@ -1,11 +1,13 @@
 ---
 title: Java关键字-volatile
-date: 2020-09-02 17:28:51
 categories:
- - [java基础, 并发编程]
+  - - java基础
+    - 并发编程
 tags:
- - java基础
- - 并发编程
+  - java基础
+  - 并发编程
+abbrlink: d77194d2
+date: 2020-09-02 17:28:51
 ---
 
 # volatile

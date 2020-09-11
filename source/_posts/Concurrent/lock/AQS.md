@@ -1,12 +1,15 @@
 ---
 title: 锁实现的核心-AQS
-date: 2020-09-07 16:07:51
 categories:
- - [java基础, 并发编程, 锁]
+  - - java基础
+    - 并发编程
+    - 锁
 tags:
- - 锁
- - java基础
- - 并发编程
+  - 锁
+  - java基础
+  - 并发编程
+abbrlink: c34df8a2
+date: 2020-09-07 16:07:51
 ---
 
 在`ReentrantLock`和`ReentrantReadWriteLock`中的内部类`Sync`都是实现了`AbstractQueuedSynchronizer`这个抽象类,

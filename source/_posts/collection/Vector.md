@@ -1,14 +1,19 @@
 ---
 title: Java集合-Vector
-date: 2020-09-01 15:47:43
 categories:
- - [java基础, 集合, 同步容器]
- - [java基础, 并发编程, 同步容器]
+  - - java基础
+    - 集合
+    - 同步容器
+  - - java基础
+    - 并发编程
+    - 同步容器
 tags:
- - java基础
- - 集合
- - List
- - 并发编程
+  - java基础
+  - 集合
+  - List
+  - 并发编程
+abbrlink: 3727b59e
+date: 2020-09-01 15:47:43
 ---
 
 `Vector`是对应的`ArrayList`的同步实现

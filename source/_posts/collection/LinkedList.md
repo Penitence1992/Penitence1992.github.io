@@ -1,12 +1,14 @@
 ---
 title: Java集合-LinkedList
-date: 2020-09-01 15:13:43
 categories:
- - [java基础, 集合]
+  - - java基础
+    - 集合
 tags:
- - java基础
- - 集合
- - List
+  - java基础
+  - 集合
+  - List
+abbrlink: 8a98b0a7
+date: 2020-09-01 15:13:43
 ---
 
 通过`双向链表`实现了List和Deque的接口方法, 是一个有序列表, 允许插入Null元素

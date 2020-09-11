@@ -1,12 +1,14 @@
 ---
 title: Java对象的内存布局
-date: 2020-09-04 13:59:35
 categories:
- - [java基础, JVM]
+  - - java基础
+    - JVM
 tags:
- - java基础
- - JVM
- - java对象
+  - java基础
+  - JVM
+  - java对象
+abbrlink: 2272264b
+date: 2020-09-04 13:59:35
 ---
 
 > 我们以HotSpot虚拟机来说明
