@@ -53,7 +53,9 @@ codeblock:
   highlight_theme: night eighties
 
 ######## 自定义插件
-
+permalink_pinyin:
+  enable: true
+  separator: '-' # default: '-'
 anchor:
   enable: true
   color: '#0e83cd'

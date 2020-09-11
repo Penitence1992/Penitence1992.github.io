@@ -2,7 +2,7 @@
 title: '有趣, 好用的算法代码记录'
 categories:
   - - 代码
-abbrlink: 7573d977
+abbrlink: 1970526583
 date: 2020-08-30 13:26:38
 ---
 

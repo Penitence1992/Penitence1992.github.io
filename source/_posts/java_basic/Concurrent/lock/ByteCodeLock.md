@@ -9,13 +9,13 @@ tags:
   - java基础
   - 并发编程
   - 字节码
-abbrlink: a7f9fab1
+abbrlink: 2818177713
 date: 2020-09-07 11:27:51
 ---
 
 今天我们由字节码层面来看看`synchronized`的实现
 
-关于class文件的字节码具体内容可以看{% post_link JVM/ClassStruct 类文件结构 %}
+关于class文件的字节码具体内容可以看{% post_link java_basic/JVM/ClassStruct 类文件结构 %}
 
 ## 描述
 

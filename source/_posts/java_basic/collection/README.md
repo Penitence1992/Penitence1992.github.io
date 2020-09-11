@@ -6,7 +6,7 @@ categories:
 tags:
   - java基础
   - 集合
-abbrlink: 96d238f4
+abbrlink: 2530359540
 date: 2020-09-01 15:58:17
 ---
 
@@ -92,11 +92,11 @@ public static final int SUBSIZED   = 0x00004000;//表示子Spliterators都具有
 
 ![家族图谱](/image/集合家族图谱.jpg)
 
-- {% post_link collection/ArrayList ArrayList %}
+- {% post_link java_basic/collection/ArrayList ArrayList %}
 
 基于数组实现的列表集合, 实现了List接口, 并且实现了`RandomAccess`表示其对随机访问的优化
 
-- {% post_link collection/LinkedList LinkedList %}
+- {% post_link java_basic/collection/LinkedList LinkedList %}
 
 基于双向链表实现的列表, 实现了接口List和Deque
 
@@ -104,7 +104,7 @@ public static final int SUBSIZED   = 0x00004000;//表示子Spliterators都具有
 
 读线程安全集合相关内容的时候, 可能还需要集合并发编程的思想, 包括各种的锁, 线程安全等内容理解
 
-- {% post_link collection/Vector Vector %}
+- {% post_link java_basic/collection/Vector Vector %}
 
 是对应的ArrayList的线程安全版本, 通过加锁等方法来实现线程安全
 
@@ -112,7 +112,7 @@ public static final int SUBSIZED   = 0x00004000;//表示子Spliterators都具有
 
 并发相关的集合框架都位于`java.util.concurrent`下, 也就是俗称的`JUC`, juc是并发编程必须了解的内容
 
-- {% post_link collection/CopyOnWriteArrayList CopyOnWriteArrayList %}
+- {% post_link java_basic/collection/CopyOnWriteArrayList CopyOnWriteArrayList %}
 
 
 ## 特殊集合

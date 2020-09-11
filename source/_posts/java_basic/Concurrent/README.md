@@ -6,7 +6,7 @@ categories:
 tags:
   - java基础
   - 并发编程
-abbrlink: 82828c57
+abbrlink: 2189593687
 date: 2020-09-02 17:12:51
 update: 2020-09-09 10:45:46
 ---
@@ -114,7 +114,7 @@ class HappensBeforeLock {
 ### 3. volatile变量规则
 
 volatile变量之前的写操作(包括共享变量的写), 会优先于volatile变量之后的读操作,
-如下, `initialized`变量, 以及之前的共享变量修改, 都会在线程b中的`initialized`之后可见, 更多的请看 {% post_link Concurrent/volatile 深入理解volatile %}
+如下, `initialized`变量, 以及之前的共享变量修改, 都会在线程b中的`initialized`之后可见, 更多的请看 {% post_link java_basic/Concurrent/volatile 深入理解volatile %}
 
 ![volatile变量规则](/image/volatile变量规则.jpg)
 

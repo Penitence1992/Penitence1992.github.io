@@ -6,14 +6,14 @@ categories:
 tags:
   - java基础
   - JVM
-abbrlink: 55a725f2
+abbrlink: 1437017586
 date: 2020-09-04 14:02:35
 ---
 # JVM
 
 主要关于Java虚拟机中的相关内容, 包含
 
-- {% post_link JVM/java_object Java对象内存组成%}
+- {% post_link java_basic/JVM/java_object Java对象内存组成%}
 
 - Java的内存区域
 

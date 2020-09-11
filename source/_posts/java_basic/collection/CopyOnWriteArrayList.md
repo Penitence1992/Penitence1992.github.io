@@ -12,7 +12,7 @@ tags:
   - 集合
   - List
   - 并发编程
-abbrlink: a4506164
+abbrlink: 2756731236
 date: 2020-09-01 15:13:43
 ---
 
@@ -42,7 +42,7 @@ public CopyOnWriteArrayList(E[] toCopyIn) {
 }
 ```
 
-- CopyOnWriteArrayList声明了一个{% post_link collection/Concurrent/lock/ReentrantLock 重入锁%}, 因此内部都是使用这个锁来实现线程安全的
+- CopyOnWriteArrayList声明了一个{% post_link java_basic/collection/Concurrent/lock/ReentrantLock 重入锁%}, 因此内部都是使用这个锁来实现线程安全的
 
 - set(index, element) 方法中可以看到,当传入值和当前值不一致的时候, 会进行一次复制, 复制后再赋值给`array`变量
 

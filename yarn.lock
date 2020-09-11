@@ -1011,6 +1011,14 @@ has-values@^1.0.0:
     is-number "^3.0.0"
     kind-of "^4.0.0"
 
+hexo-abbrlink@^2.2.1:
+  version "2.2.1"
+  resolved "https://npm.ascs.tech/repository/npm-public/hexo-abbrlink/-/hexo-abbrlink-2.2.1.tgz#03a3bbf73816ed19279e97452ce617c6caf98b5a"
+  integrity sha1-A6O79zgW7RknnpdFLOYXxsr5i1o=
+  dependencies:
+    hexo-front-matter "^1.0.0"
+    hexo-fs "^3.1.0"
+
 hexo-bunyan@^1.0.0:
   version "1.0.0"
   resolved "https://npm.ascs.tech/repository/npm-public/hexo-bunyan/-/hexo-bunyan-1.0.0.tgz#b2106b26547b232f0195db863cb5d5ff8527fd36"
@@ -1071,6 +1079,13 @@ hexo-front-matter@^0.2.3:
   integrity sha1-x8qO9CDqNr2F6ECKLoyb9J76YF4=
   dependencies:
     js-yaml "^3.6.1"
+
+hexo-front-matter@^1.0.0:
+  version "1.0.0"
+  resolved "https://npm.ascs.tech/repository/npm-public/hexo-front-matter/-/hexo-front-matter-1.0.0.tgz#0b48b1c1ed143e8cb25b3b223a9037385d910655"
+  integrity sha1-C0ixwe0UPoyyWzsiOpA3OF2RBlU=
+  dependencies:
+    js-yaml "^3.13.1"
 
 hexo-front-matter@^2.0.0:
   version "2.0.0"
