@@ -70,3 +70,29 @@ anchor:
     # Also you can choose ForkAwesome, but that's another story.
     font: FontAwesome
     content: \f0c1 # CSS content for FontAwesome & ForkAwesome.
+
+comments:
+  # Available values: tabs | buttons
+  style: tabs
+  # Choose a comment system to be displayed by default.
+  # Available values: changyan | disqus | disqusjs | gitalk | livere | valine
+  active: gitalk
+  # Setting `true` means remembering the comment system selected by the visitor.
+  storage: true
+  # Lazyload all comment systems.
+  lazyload: false
+  # Modify texts or order for any navs, here are some examples.
+  nav:
+
+gitalk:
+  enable: true
+  github_id: penitence1992
+  repo: penitence1992.github.io
+  client_id: "f999241b0a8fde71f64c"
+  client_secret: "bac789c0766bed290f2b189e3e6d974e2b4afdf0"
+  admin_user: penitence1992
+  distraction_free_mode: false # Facebook-like distraction free mode
+  # Gitalk's display language depends on user's browser or system environment
+  # If you want everyone visiting your site to see a uniform language, you can set a force language value
+  # Available values: en | es-ES | fr | ru | zh-CN | zh-TW
+  language: zh-CN
