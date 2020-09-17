@@ -1,5 +1,5 @@
 ---
-title: 2020-09-17-使用Taints和Tolerations.md
+title: 2020-09-17-使用Taints和Tolerations
 date: 2020-09-17 09:20:00
 tags:
  - k8s
