@@ -9,6 +9,7 @@ tags:
   - Map
 abbrlink: 509483648
 date: 2020-09-09 15:57:59
+updated: 2020-09-17 16:24:34
 ---
 
 在Jdk8中, 对HashMap进行了改进, 改进的点主要有:
@@ -75,6 +76,10 @@ static final int MIN_TREEIFY_CAPACITY = 64;
 根据上面的变量定义可以知道面试的时候常问的一些基础问题, 负载因子为0.75, 容量为16, 树化阈值为8, 树化容量为64,
 当`HashMap`的`size > 容量*负载因子`的时候会发生扩容
 
+> ps: 看到有文章说定义容量的时候不要定义非2次幂的数量, 在初始化的时候`tableSizeFor`方法会计算该树最近接的2次幂的数
+>
+> 也就是说如果你初始化的容量不是2次幂的数, 会变成最接近的2次幂的数
+
 
 #### 有趣的方法`tableSizeFor`
 
@@ -128,3 +133,146 @@ static final int hash(Object key) {
 下面是put方法的核心内容, `putVal`方法, 这个方法可能需要拆成几部分来说明
 
 ##### 完整代码
+
+这是`putVal`方法的完整代码
+
+```java
+final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+                   boolean evict) {
+    Node<K,V>[] tab; Node<K,V> p; int n, i;
+    if ((tab = table) == null || (n = tab.length) == 0)
+        n = (tab = resize()).length;
+    if ((p = tab[i = (n - 1) & hash]) == null)
+        tab[i] = newNode(hash, key, value, null);
+    else {
+        Node<K,V> e; K k;
+        if (p.hash == hash &&
+            ((k = p.key) == key || (key != null && key.equals(k))))
+            e = p;
+        else if (p instanceof TreeNode)
+            e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+        else {
+            for (int binCount = 0; ; ++binCount) {
+                if ((e = p.next) == null) {
+                    p.next = newNode(hash, key, value, null);
+                    if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                        treeifyBin(tab, hash);
+                    break;
+                }
+                if (e.hash == hash &&
+                    ((k = e.key) == key || (key != null && key.equals(k))))
+                    break;
+                p = e;
+            }
+        }
+        if (e != null) { // existing mapping for key
+            V oldValue = e.value;
+            if (!onlyIfAbsent || oldValue == null)
+                e.value = value;
+            afterNodeAccess(e);
+            return oldValue;
+        }
+    }
+    ++modCount;
+    if (++size > threshold)
+        resize();
+    afterNodeInsertion(evict);
+    return null;
+}
+```
+
+---
+
+我们先看前面两句
+
+```java
+Node<K,V>[] tab; Node<K,V> p; int n, i;
+if ((tab = table) == null || (n = tab.length) == 0)
+    n = (tab = resize()).length;
+```
+
+当table为null或者table的大小为0的时候, 会触发一次`resize`方法, 该方法主要是初始化或者扩容的时候调用, 在这里是用于初始化的
+
+这里计算的`n`表示当前数组的容量
+
+然后接下来的`if-else`则是比较重要的内容, 我们先说`if`
+
+```java
+if ((p = tab[i = (n - 1) & hash]) == null)
+    tab[i] = newNode(hash, key, value, null);
+else {
+    ...
+}
+```
+
+这里是使用数组容量和hash值进行与运算, 得到存放的数组的下标, 然后位置上没有数据, 则直接初始化一个节点放进去就可以了
+
+> ps: 所以这里知道hash的时候为什么要把高位和低位做运算了, 否则一个hash值只有高位改变的话, 则会出现严重的hash冲突
+
+而`else`则表示当前hash冲突了, 为了解决这种冲突, 1.8以前是通过链表的形式来把冲突位置上的节点连起来的
+
+```java
+if (p.hash == hash &&
+    ((k = p.key) == key || (key != null && key.equals(k))))
+    e = p;
+else if (p instanceof TreeNode)
+    e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+else {
+    for (int binCount = 0; ; ++binCount) {
+        if ((e = p.next) == null) {
+            p.next = newNode(hash, key, value, null);
+            if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                treeifyBin(tab, hash);
+            break;
+        }
+        if (e.hash == hash &&
+            ((k = e.key) == key || (key != null && key.equals(k))))
+            break;
+        p = e;
+    }
+}
+```
+
+这里面会先判断, 当前的key在是否为重复的可以, 如果是, 那就好办了, 直接跳过到后面的处理即可, 但是万一不是呢
+
+那就会先判断是不是`TreeNode`, 如果是, 则表示当前存放的以及是一棵树了, 使用`TreeNode`的`putTreeVal`方法
+
+否则表示当前还是链表的形式, 然后会开始遍历链表, 我们知道, 
+
+```java
+for (int binCount = 0; ; ++binCount) {
+    // 一直遍历, 直到链表尾巴, 然后会初始化为一个节点, 当链表长度大于8的时候, 会尝试`treeifyBin`方法
+    if ((e = p.next) == null) {
+        p.next = newNode(hash, key, value, null);
+        if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+            treeifyBin(tab, hash);
+        break;
+    }
+    // 判断数组的key是否存在, 存在的话则会跳出循环, 进行后续的处理
+    if (e.hash == hash &&
+        ((k = e.key) == key || (key != null && key.equals(k))))
+        break;
+    p = e;
+}
+```
+
+这里有个判断`TREEIFY_THRESHOLD - 1`, 也就是常说的当链表长度大于8的时候, 会变成红黑树, 但是并没有那么简单, 我们后续再去看
+
+后续的`if`,主要是处理key重复的情况
+
+```java
+if (e != null) { // existing mapping for key
+    V oldValue = e.value;
+    if (!onlyIfAbsent || oldValue == null)
+        e.value = value;
+    afterNodeAccess(e);
+    return oldValue;
+}
+```
+
+然后会判断容量是否达到了扩容的阈值, 是的话则会触发`resize()`方法扩容
+
+
+#### resize
+
+上面多次说到resize方法, 这次我们来看看他的主要内容吧

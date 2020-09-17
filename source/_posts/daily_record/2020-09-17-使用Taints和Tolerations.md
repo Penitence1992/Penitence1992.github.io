@@ -1,11 +1,13 @@
 ---
 title: 2020-09-17-使用Taints和Tolerations
-date: 2020-09-17 09:20:00
 tags:
- - k8s
+  - k8s
 categories:
- - - k8s
-   - 资源调度
+  - - k8s
+    - 资源调度
+abbrlink: 3583424469
+date: 2020-09-17 09:20:00
+updated: 2020-09-17 09:20:00
 ---
 
 ## 背景

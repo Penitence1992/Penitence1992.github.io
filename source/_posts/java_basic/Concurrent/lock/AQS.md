@@ -10,6 +10,7 @@ tags:
   - 并发编程
 abbrlink: 3276667042
 date: 2020-09-07 16:07:51
+updated: 2020-09-07 16:07:51
 ---
 
 在`ReentrantLock`和`ReentrantReadWriteLock`中的内部类`Sync`都是实现了`AbstractQueuedSynchronizer`这个抽象类,

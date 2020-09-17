@@ -1,11 +1,13 @@
 ---
 title: Mac软件分享-OmniDiskSweeper
-date: 2020-09-17 15:57:00
 tags:
- - 软件
+  - 软件
 categories:
- - - Mac
-   - 软件
+  - - Mac
+    - 软件
+abbrlink: 1636670189
+date: 2020-09-17 15:57:00
+updated: 2020-09-17 15:57:00
 ---
 
 ## 背景

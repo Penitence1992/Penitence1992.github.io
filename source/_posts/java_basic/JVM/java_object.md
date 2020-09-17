@@ -9,6 +9,7 @@ tags:
   - java对象
 abbrlink: 577906251
 date: 2020-09-04 13:59:35
+updated: 2020-09-04 13:59:35
 ---
 
 > 我们以HotSpot虚拟机来说明
