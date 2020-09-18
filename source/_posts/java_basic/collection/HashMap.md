@@ -9,7 +9,7 @@ tags:
   - Map
 abbrlink: 509483648
 date: 2020-09-09 15:57:59
-updated: 2020-09-17 16:24:34
+updated: 2020-09-18 17:39:31
 ---
 
 在Jdk8中, 对HashMap进行了改进, 改进的点主要有:
@@ -79,6 +79,10 @@ static final int MIN_TREEIFY_CAPACITY = 64;
 > ps: 看到有文章说定义容量的时候不要定义非2次幂的数量, 在初始化的时候`tableSizeFor`方法会计算该树最近接的2次幂的数
 >
 > 也就是说如果你初始化的容量不是2次幂的数, 会变成最接近的2次幂的数
+>
+> ps2: 为什么MAXIMUM_CAPACITY会是 1 << 30 呢?
+> 
+> 因为当扩容的时候, 使用的是 cap << 1 来实现, 如果当容量超过MAXIMUM_CAPACITY, 假设为 1 << 31的时候, 会发现这次左移会超过int的最大值
 
 
 #### 有趣的方法`tableSizeFor`
@@ -276,3 +280,101 @@ if (e != null) { // existing mapping for key
 #### resize
 
 上面多次说到resize方法, 这次我们来看看他的主要内容吧
+
+```java
+final Node<K,V>[] resize() {
+    Node<K,V>[] oldTab = table;
+    int oldCap = (oldTab == null) ? 0 : oldTab.length;
+    int oldThr = threshold;
+    int newCap, newThr = 0;
+    if (oldCap > 0) {
+        if (oldCap >= MAXIMUM_CAPACITY) {
+            threshold = Integer.MAX_VALUE;
+            return oldTab;
+        }
+        else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
+                 oldCap >= DEFAULT_INITIAL_CAPACITY)
+            newThr = oldThr << 1; // double threshold
+    }
+    else if (oldThr > 0) // initial capacity was placed in threshold
+        newCap = oldThr;
+    else {               // zero initial threshold signifies using defaults
+        newCap = DEFAULT_INITIAL_CAPACITY;
+        newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
+    }
+    if (newThr == 0) {
+        float ft = (float)newCap * loadFactor;
+        newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
+                  (int)ft : Integer.MAX_VALUE);
+    }
+    threshold = newThr;
+    @SuppressWarnings({"rawtypes","unchecked"})
+        Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
+    table = newTab;
+    if (oldTab != null) { ... }
+    return newTab;
+}
+```
+
+我们先把`if (oldTab != null)`这段收起来, 先看外面的, 前面的过程主要为如下的流程:
+
+1. 判断旧容量是否为0, 如果为0表示已经初始化完成了
+
+    1.1  如果旧容量已经超过最大容量, 则不进行扩容并且设置阈值, 直接返回旧表
+    
+    1.2  没超过最大容量, 则新容量扩大一倍, 然后阈值也增大1倍
+    
+2. 剩下两个条件这是针对初始化的了
+   
+    2.1 `else if (oldThr > 0)` 表示设置了设置初始容量的, 则直接使用
+    
+    2.2 如果没有设置, 则使用默认的容量`16`, 还有负载因子`0.75`来计算
+
+3. 然后就会初始化一个新的大小的数组赋值给了`table`变量
+
+----
+
+我们再来看看`if (oldTab != null)`这个代码块里面的内容, 这里面主要就是处理扩容后对数据的处理
+
+```java
+for (int j = 0; j < oldCap; ++j) {
+    Node<K,V> e;
+    if ((e = oldTab[j]) != null) {
+        oldTab[j] = null;
+        if (e.next == null)
+            newTab[e.hash & (newCap - 1)] = e;
+        else if (e instanceof TreeNode)
+            ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
+        else { // preserve order
+            Node<K,V> loHead = null, loTail = null;
+            Node<K,V> hiHead = null, hiTail = null;
+            Node<K,V> next;
+            do {
+                next = e.next;
+                if ((e.hash & oldCap) == 0) {
+                    if (loTail == null)
+                        loHead = e;
+                    else
+                        loTail.next = e;
+                    loTail = e;
+                }
+                else {
+                    if (hiTail == null)
+                        hiHead = e;
+                    else
+                        hiTail.next = e;
+                    hiTail = e;
+                }
+            } while ((e = next) != null);
+            if (loTail != null) {
+                loTail.next = null;
+                newTab[j] = loHead;
+            }
+            if (hiTail != null) {
+                hiTail.next = null;
+                newTab[j + oldCap] = hiHead;
+            }
+        }
+    }
+}
+```
