@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"penitence1992.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="主要看一下java中各种集合的源码, 同时对于不同集合的使用场景进行归纳,并且针对不同类型集合的操作做一个时间复杂度的整理等 针对并发环境下, 又分成了非线程安全集合, 同步集合, 并发集合 其中非线程安全集合是线程不安全的, 无法在并发环境下使用的集合,而同步集合和并发集合都是线程安全的, 主要区别在于实现,性能和扩展上">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java集合文章整理">
+<meta property="og:url" content="https://penitence1992.github.io/blog/2530359540.html">
+<meta property="og:site_name" content="脑容量垃圾回收站">
+<meta property="og:description" content="主要看一下java中各种集合的源码, 同时对于不同集合的使用场景进行归纳,并且针对不同类型集合的操作做一个时间复杂度的整理等 针对并发环境下, 又分成了非线程安全集合, 同步集合, 并发集合 其中非线程安全集合是线程不安全的, 无法在并发环境下使用的集合,而同步集合和并发集合都是线程安全的, 主要区别在于实现,性能和扩展上">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://penitence1992.github.io/image/%E9%9B%86%E5%90%88%E5%AE%B6%E6%97%8F%E5%9B%BE%E8%B0%B1.jpg">
+<meta property="article:published_time" content="2020-09-01T07:58:17.000Z">
+<meta property="article:modified_time" content="2020-09-01T07:58:17.000Z">
+<meta property="article:author" content="Penitence">
+<meta property="article:tag" content="java基础">
+<meta property="article:tag" content="集合">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://penitence1992.github.io/image/%E9%9B%86%E5%90%88%E5%AE%B6%E6%97%8F%E5%9B%BE%E8%B0%B1.jpg">
+
+<link rel="canonical" href="https://penitence1992.github.io/blog/2530359540.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Java集合文章整理 | 脑容量垃圾回收站</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">脑容量垃圾回收站</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">知识归处</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://penitence1992.github.io/blog/2530359540.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/image/other/avatar.jpg">
+      <meta itemprop="name" content="Penitence">
+      <meta itemprop="description" content="一个弱小无助的程序员">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="脑容量垃圾回收站">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java集合文章整理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-01 15:58:17" itemprop="dateCreated datePublished" datetime="2020-09-01T15:58:17+08:00">2020-09-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">java基础</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java%E5%9F%BA%E7%A1%80/%E9%9B%86%E5%90%88/" itemprop="url" rel="index"><span itemprop="name">集合</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>主要看一下java中各种集合的源码, 同时对于不同集合的使用场景进行归纳,<br>并且针对不同类型集合的操作做一个时间复杂度的整理等</p>
+<p>针对并发环境下, 又分成了<code>非线程安全集合</code>, <code>同步集合</code>, <code>并发集合</code></p>
+<p>其中<code>非线程安全集合</code>是线程不安全的, 无法在并发环境下使用的集合,<br>而<code>同步集合</code>和<code>并发集合</code>都是线程安全的, 主要区别在于实现,性能和扩展上</p>
+<a id="more"></a>
+
+<h2 id="jdk-1-8的新增或者修改内容"><a href="#jdk-1-8的新增或者修改内容" class="headerlink" title="jdk 1.8的新增或者修改内容"></a>jdk 1.8的新增或者修改内容</h2><p>在jdk1.8中, 类比迭代器(Iterator)新增了(Spliterator)</p>
+<p>Iterator是一个串行的迭代, 而Spliterator是一个并行的迭代器</p>
+<h3 id="Iterable"><a href="#Iterable" class="headerlink" title="Iterable"></a>Iterable</h3><ul>
+<li>forEach(Consumer) (新增)</li>
+</ul>
+<p>通过forEach的方式来封装了一次这个方法, 使得实现了Iterable的类, 可以通过lambda的方式来遍历集合</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">default</span> <span class="keyword">void</span> <span class="title">forEach</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span> </span>&#123;</span><br><span class="line">    Objects.requireNonNull(action);</span><br><span class="line">    <span class="keyword">for</span> (T t : <span class="keyword">this</span>) &#123;</span><br><span class="line">        action.accept(t);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>spliterator (新增)</li>
+</ul>
+<p>创建一个并行迭代器, 可能主要用于给<code>StreamSupport</code>提供支持</p>
+<h3 id="Collection"><a href="#Collection" class="headerlink" title="Collection"></a>Collection</h3><ul>
+<li><p>removeIf(Predicate) (新增)</p>
+<p>  <code>removeIf</code>新增在<code>Collection</code>的接口内, 默认提供了一个使用迭代器来实现的遍历删除方法</p>
+</li>
+<li><p>stream()</p>
+<p>  通过StreamSupport来创建一个stream流</p>
+</li>
+<li><p>parallelStream()</p>
+<p>  创建一个并行的流</p>
+</li>
+</ul>
+<h2 id="集合框架下的接口"><a href="#集合框架下的接口" class="headerlink" title="集合框架下的接口"></a>集合框架下的接口</h2><h3 id="Spliterator"><a href="#Spliterator" class="headerlink" title="Spliterator"></a>Spliterator</h3><p>并行迭代器, Stream都是使用该接口来构建一个Stream流, 该接口包含的方法有:</p>
+<ol>
+<li><p>tryAdvance –&gt; 对元素进行处理, 如果元素存在在处理并且返回true, 否则返回false</p>
+</li>
+<li><p>trySplit  –&gt; 对元素进行分割, 会尽力按照1/2的数量进行分割, 返回一个新的Spliterator, 旧的Spliterator也会被修改</p>
+</li>
+<li><p>estimateSize –&gt; 返回待处理元素</p>
+</li>
+<li><p>characteristics –&gt; 特征</p>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> ORDERED    = <span class="number">0x00000010</span>;<span class="comment">//表示元素是有序的（每一次遍历结果相同）</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> DISTINCT   = <span class="number">0x00000001</span>;<span class="comment">//表示元素不重复</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SORTED     = <span class="number">0x00000004</span>;<span class="comment">//表示元素是按一定规律进行排列（有指定比较器）</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SIZED      = <span class="number">0x00000040</span>;<span class="comment">//表示大小是固定的</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> NONNULL    = <span class="number">0x00000100</span>;<span class="comment">//表示没有null元素</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> IMMUTABLE  = <span class="number">0x00000400</span>;<span class="comment">//表示元素不可变</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> CONCURRENT = <span class="number">0x00001000</span>;<span class="comment">//表示迭代器可以多线程操作</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SUBSIZED   = <span class="number">0x00004000</span>;<span class="comment">//表示子Spliterators都具有SIZED特性</span></span><br></pre></td></tr></table></figure>
+<h2 id="线程不安全集合"><a href="#线程不安全集合" class="headerlink" title="线程不安全集合"></a>线程不安全集合</h2><p>集合的家族图谱</p>
+<blockquote>
+<p>ps: 图谱来源网络</p>
+</blockquote>
+<p><img src="/image/%E9%9B%86%E5%90%88%E5%AE%B6%E6%97%8F%E5%9B%BE%E8%B0%B1.jpg" alt="家族图谱"></p>
+<ul>
+<li><a href="/blog/4080087710.html" title="ArrayList">ArrayList</a>
+
+</li>
+</ul>
+<p>基于数组实现的列表集合, 实现了List接口, 并且实现了<code>RandomAccess</code>表示其对随机访问的优化</p>
+<ul>
+<li><a href="/blog/2325262503.html" title="LinkedList">LinkedList</a>
+
+</li>
+</ul>
+<p>基于双向链表实现的列表, 实现了接口List和Deque</p>
+<h2 id="同步集合"><a href="#同步集合" class="headerlink" title="同步集合"></a>同步集合</h2><p>读线程安全集合相关内容的时候, 可能还需要集合并发编程的思想, 包括各种的锁, 线程安全等内容理解</p>
+<ul>
+<li><a href="/blog/925349278.html" title="Vector">Vector</a>
+
+</li>
+</ul>
+<p>是对应的ArrayList的线程安全版本, 通过加锁等方法来实现线程安全</p>
+<h2 id="并发集合"><a href="#并发集合" class="headerlink" title="并发集合"></a>并发集合</h2><p>并发相关的集合框架都位于<code>java.util.concurrent</code>下, 也就是俗称的<code>JUC</code>, juc是并发编程必须了解的内容</p>
+<ul>
+<li><a href="/blog/2756731236.html" title="CopyOnWriteArrayList">CopyOnWriteArrayList</a>
+
+
+</li>
+</ul>
+<h2 id="特殊集合"><a href="#特殊集合" class="headerlink" title="特殊集合"></a>特殊集合</h2><h3 id="BitSet"><a href="#BitSet" class="headerlink" title="BitSet"></a>BitSet</h3><p>这是一个特殊的集合, 没有实现集合的基本接口, 并且提供了一些bit运算, 如 <code>与</code>, <code>或</code>, <code>异或</code><br>一个基于bit位的集合</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java%E5%9F%BA%E7%A1%80/" rel="tag"># java基础</a>
+              <a href="/tags/%E9%9B%86%E5%90%88/" rel="tag"># 集合</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog/925349278.html" rel="prev" title="Java集合-Vector">
+      <i class="fa fa-chevron-left"></i> Java集合-Vector
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blog/2189593687.html" rel="next" title="并发编程基础概念">
+      并发编程基础概念 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#jdk-1-8%E7%9A%84%E6%96%B0%E5%A2%9E%E6%88%96%E8%80%85%E4%BF%AE%E6%94%B9%E5%86%85%E5%AE%B9"><span class="nav-number">1.</span> <span class="nav-text">jdk 1.8的新增或者修改内容</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Iterable"><span class="nav-number">1.1.</span> <span class="nav-text">Iterable</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Collection"><span class="nav-number">1.2.</span> <span class="nav-text">Collection</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6%E4%B8%8B%E7%9A%84%E6%8E%A5%E5%8F%A3"><span class="nav-number">2.</span> <span class="nav-text">集合框架下的接口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Spliterator"><span class="nav-number">2.1.</span> <span class="nav-text">Spliterator</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E4%B8%8D%E5%AE%89%E5%85%A8%E9%9B%86%E5%90%88"><span class="nav-number">3.</span> <span class="nav-text">线程不安全集合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8C%E6%AD%A5%E9%9B%86%E5%90%88"><span class="nav-number">4.</span> <span class="nav-text">同步集合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E9%9B%86%E5%90%88"><span class="nav-number">5.</span> <span class="nav-text">并发集合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%B9%E6%AE%8A%E9%9B%86%E5%90%88"><span class="nav-number">6.</span> <span class="nav-text">特殊集合</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#BitSet"><span class="nav-number">6.1.</span> <span class="nav-text">BitSet</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Penitence"
+      src="/image/other/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Penitence</p>
+  <div class="site-description" itemprop="description">一个弱小无助的程序员</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/penitence1992" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;penitence1992" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Penitence</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">53k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">48 分钟</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'f999241b0a8fde71f64c',
+      clientSecret: 'bac789c0766bed290f2b189e3e6d974e2b4afdf0',
+      repo        : 'penitence1992.github.io',
+      owner       : 'penitence1992',
+      admin       : ['penitence1992'],
+      id          : '2f204d058d48703df8703b7592077c40',
+        language: 'zh-CN',
+      distractionFreeMode: false
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

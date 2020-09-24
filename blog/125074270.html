@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"penitence1992.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="不可不说的Java”锁”事  按照锁的性质, 可以把锁分组归类">
+<meta property="og:type" content="article">
+<meta property="og:title" content="认识下Java并发编程中的锁">
+<meta property="og:url" content="https://penitence1992.github.io/blog/125074270.html">
+<meta property="og:site_name" content="脑容量垃圾回收站">
+<meta property="og:description" content="不可不说的Java”锁”事  按照锁的性质, 可以把锁分组归类">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://penitence1992.github.io/image/%E9%94%81%E5%88%86%E7%B1%BB.png">
+<meta property="og:image" content="https://penitence1992.github.io/image/%E9%94%81%E7%8A%B6%E6%80%81%E8%BD%AC%E6%8D%A2.jpg">
+<meta property="article:published_time" content="2020-09-07T02:35:31.000Z">
+<meta property="article:modified_time" content="2020-09-07T02:35:31.000Z">
+<meta property="article:author" content="Penitence">
+<meta property="article:tag" content="java基础">
+<meta property="article:tag" content="并发编程">
+<meta property="article:tag" content="锁">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://penitence1992.github.io/image/%E9%94%81%E5%88%86%E7%B1%BB.png">
+
+<link rel="canonical" href="https://penitence1992.github.io/blog/125074270.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>认识下Java并发编程中的锁 | 脑容量垃圾回收站</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">脑容量垃圾回收站</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">知识归处</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://penitence1992.github.io/blog/125074270.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/image/other/avatar.jpg">
+      <meta itemprop="name" content="Penitence">
+      <meta itemprop="description" content="一个弱小无助的程序员">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="脑容量垃圾回收站">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          认识下Java并发编程中的锁
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-07 10:35:31" itemprop="dateCreated datePublished" datetime="2020-09-07T10:35:31+08:00">2020-09-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">java基础</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java%E5%9F%BA%E7%A1%80/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">并发编程</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java%E5%9F%BA%E7%A1%80/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/%E9%94%81/" itemprop="url" rel="index"><span itemprop="name">锁</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p><a target="_blank" rel="noopener" href="https://tech.meituan.com/2018/11/15/java-lock.html">不可不说的Java”锁”事</a></p>
+</blockquote>
+<p>按照锁的性质, 可以把锁分组归类</p>
+<p><img src="/image/%E9%94%81%E5%88%86%E7%B1%BB.png" alt="锁家族"></p>
+<a id="more"></a>
+
+<h2 id="乐观锁-VS-悲观锁"><a href="#乐观锁-VS-悲观锁" class="headerlink" title="乐观锁 VS 悲观锁"></a>乐观锁 VS 悲观锁</h2><ul>
+<li><p>乐观锁: 乐观锁认为自己使用数据时不会有别的线程修改数据, 所以不加锁, 只有再更新的时候去判断有没有别的线程修改了数据<br>Java中通过CAS算法来实现, 同时, CAS算法也会引出新的问题, 如ABA, 自旋转消耗CPU大</p>
+<ul>
+<li><p>解决ABA的问题的思路是在变量前面添加版本号, JDK1.5后提供了<code>AtomicStampedReference</code>类来解决ABA问题</p>
+</li>
+<li><p>Java中的原子操作类都是通过乐观锁实现的</p>
+</li>
+<li><p>TODO: 我们来看看原子操作类的源码吧</p>
+</li>
+</ul>
+</li>
+<li><p>悲观锁: 悲观锁认为自己在使用数据的时候, 一定有别的线程来修改数据, 因此在获取数据前会先加锁,<br>确保不会被修改(原来是这么个悲观法), synchronized关键字和<code>Lock</code>的实现类都是悲观锁</p>
+</li>
+</ul>
+<h3 id="自旋锁-VS-适应性自旋锁"><a href="#自旋锁-VS-适应性自旋锁" class="headerlink" title="自旋锁 VS 适应性自旋锁"></a>自旋锁 VS 适应性自旋锁</h3><ul>
+<li>什么是自旋: 自旋说的是通过循环来持续占用CPU资源, 不让CPU切换线程, 如果时间过长, 会导致资源白白的浪费</li>
+</ul>
+<p>自旋锁也是通过CAS来实现的, 一般可以使用<code>AtomicReference</code>来实现一个简单的自旋锁</p>
+<p>自旋锁在JDK1.4.2中引入，使用-XX:+UseSpinning来开启。JDK 6中变为默认开启，并且引入了自适应的自旋锁（适应性自旋锁）。</p>
+<p>自适应意味着自旋的时间（次数）不再固定，而是由前一次在同一个锁上的自旋时间及锁的拥有者的状态来决定。如果在同一个锁对象上，自旋等待刚刚成功获得过锁，并且持有锁的线程正在运行中，那么虚拟机就会认为这次自旋也是很有可能再次成功，进而它将允许自旋等待持续相对更长的时间。如果对于某个锁，自旋很少成功获得过，那在以后尝试获取这个锁时将可能省略掉自旋过程，直接阻塞线程，避免浪费处理器资源。</p>
+<h3 id="无锁-VS-偏向锁-VS-轻量级锁-VS-重量级锁-锁升级"><a href="#无锁-VS-偏向锁-VS-轻量级锁-VS-重量级锁-锁升级" class="headerlink" title="无锁 VS 偏向锁 VS 轻量级锁 VS 重量级锁(锁升级)"></a>无锁 VS 偏向锁 VS 轻量级锁 VS 重量级锁(锁升级)</h3><blockquote>
+<p>查看这节之前, 最好先查看<a href="/blog/577906251.html" title="Java对象的内存布局">Java对象的内存布局</a></p>
+</blockquote>
+<ul>
+<li><p>无锁: 不使用锁, 进行更新资源, 所以线程都可以同时对资源进行访问, 但是只有一个线程能够修改成功, 例子: 原子操作类里面使用的CAS算法</p>
+</li>
+<li><p>偏向锁: 线程第一次访问资源的时候, 会设置标志位为01, 设置偏向模式为1, 同时使用<code>CAS</code>把获取到锁的线程ID记录在对象的MarkWord中,<br>后续持有偏向锁的线程每次进入这个锁相关的同步块的时候, 都可以不需要进行同步操作, 所以只有第一次进行了一次同步操作, 减少开销</p>
+</li>
+<li><p>轻量锁: 当锁为偏向锁的时候, 有另外一个线程访问, 则会升级为轻量锁,<br>如果对象锁状态为未锁定, 则会在当前线程栈帧中建立锁记录(Lock Record)的, 然后拷贝对象当前的MarkWord到LR中, 如果拷贝成功<br>则会使用CAS操作尝试将对象的MarkWord更新为指向LR的指针, 然后将LR中的owner指针指向对象的MarkWord</p>
+</li>
+<li><p>重量锁: 进入重量锁后, 所有等待的线程会进入阻塞状态</p>
+</li>
+</ul>
+<p>锁的变化如下:</p>
+<p><img src="../../../../image/%E9%94%81%E7%8A%B6%E6%80%81%E8%BD%AC%E6%8D%A2.jpg" alt="锁变化"></p>
+<p>总结:</p>
+<p>无锁, 偏向锁, 轻量锁都使用了CAS算法来实现同步</p>
+<p>重量锁 使用了线程阻塞的方式同步</p>
+<h2 id="公平锁-VS-非公平锁"><a href="#公平锁-VS-非公平锁" class="headerlink" title="公平锁 VS 非公平锁"></a>公平锁 VS 非公平锁</h2><p>公平锁: 指的是按照线程申请的顺序来获取锁, 队列中的第一个线程才能获得锁. 优点: 等待锁的线程不会饿死, 缺点: 吞吐效率相对非公平锁要低,<br>主要原因是: 所有线程都会进入阻塞状态, 因此会有唤醒阻塞线程的开销</p>
+<p>非公平锁: 指的是多个线程阻塞前先尝试直接获取锁, 获取不到才会到队列尾进行排队, 如果此时锁刚好可用, 则不会进入阻塞直接获取到锁.<br>优点: 可以减少唤醒线程的开销, 整体吞吐效率高. 缺点: 队列中的线程可能会饿死, 或者很久才能获取到锁</p>
+<p>关于这部分的使用我们通过<a href="ReentrantLock.md">ReentrantLock的源码阅读</a>来讲解</p>
+<h2 id="可重入锁-VS-非可重入锁"><a href="#可重入锁-VS-非可重入锁" class="headerlink" title="可重入锁 VS 非可重入锁"></a>可重入锁 VS 非可重入锁</h2><p>可重入锁又名递归锁，是指在同一个线程在外层方法获取锁的时候，再进入该线程的内层方法会自动获取锁（前提锁对象得是同一个对象或者class），不会因为之前已经获取过还没释放而阻塞。Java中ReentrantLock和synchronized都是可重入锁，可重入锁的一个优点是可一定程度避免死锁。</p>
+<p>ReentrantLock和synchronized都是重入锁</p>
+<p>可重入锁主要是内部维护一个计数器, 当是当前线程再次获取锁的时候, 计算器会执行+1的操作, 直到计算器为0的时候释放锁</p>
+<p>不可重入锁内部使用的是一个status状态属性来控制锁状态, 当锁状态为1的时候, 表示已经被占用, 此时不可以获取锁</p>
+<h2 id="独享锁-VS-共享锁"><a href="#独享锁-VS-共享锁" class="headerlink" title="独享锁 VS 共享锁"></a>独享锁 VS 共享锁</h2><p>独享锁也叫排他锁，是指该锁一次只能被一个线程所持有。如果线程T对数据A加上排它锁后，则其他线程不能再对A加任何类型的锁。获得排它锁的线程即能读数据又能修改数据。JDK中的synchronized和JUC中Lock的实现类就是互斥锁。</p>
+<p>共享锁是指该锁可被多个线程所持有。如果线程T对数据A加上共享锁后，则其他线程只能对A再加共享锁，不能加排它锁。获得共享锁的线程只能读数据，不能修改数据。</p>
+<p>独享锁与共享锁也是通过AQS来实现的，通过实现不同的方法，来实现独享或者共享。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java%E5%9F%BA%E7%A1%80/" rel="tag"># java基础</a>
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag"># 并发编程</a>
+              <a href="/tags/%E9%94%81/" rel="tag"># 锁</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog/1437017586.html" rel="prev" title="JVM文章整合">
+      <i class="fa fa-chevron-left"></i> JVM文章整合
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blog/2439952829.html" rel="next" title="类文件的结构">
+      类文件的结构 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%90%E8%A7%82%E9%94%81-VS-%E6%82%B2%E8%A7%82%E9%94%81"><span class="nav-number">1.</span> <span class="nav-text">乐观锁 VS 悲观锁</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%87%AA%E6%97%8B%E9%94%81-VS-%E9%80%82%E5%BA%94%E6%80%A7%E8%87%AA%E6%97%8B%E9%94%81"><span class="nav-number">1.1.</span> <span class="nav-text">自旋锁 VS 适应性自旋锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E9%94%81-VS-%E5%81%8F%E5%90%91%E9%94%81-VS-%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81-VS-%E9%87%8D%E9%87%8F%E7%BA%A7%E9%94%81-%E9%94%81%E5%8D%87%E7%BA%A7"><span class="nav-number">1.2.</span> <span class="nav-text">无锁 VS 偏向锁 VS 轻量级锁 VS 重量级锁(锁升级)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AC%E5%B9%B3%E9%94%81-VS-%E9%9D%9E%E5%85%AC%E5%B9%B3%E9%94%81"><span class="nav-number">2.</span> <span class="nav-text">公平锁 VS 非公平锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E9%87%8D%E5%85%A5%E9%94%81-VS-%E9%9D%9E%E5%8F%AF%E9%87%8D%E5%85%A5%E9%94%81"><span class="nav-number">3.</span> <span class="nav-text">可重入锁 VS 非可重入锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8B%AC%E4%BA%AB%E9%94%81-VS-%E5%85%B1%E4%BA%AB%E9%94%81"><span class="nav-number">4.</span> <span class="nav-text">独享锁 VS 共享锁</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Penitence"
+      src="/image/other/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Penitence</p>
+  <div class="site-description" itemprop="description">一个弱小无助的程序员</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/penitence1992" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;penitence1992" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Penitence</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">53k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">48 分钟</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'f999241b0a8fde71f64c',
+      clientSecret: 'bac789c0766bed290f2b189e3e6d974e2b4afdf0',
+      repo        : 'penitence1992.github.io',
+      owner       : 'penitence1992',
+      admin       : ['penitence1992'],
+      id          : 'ad969fbde69d14928038473856d0a621',
+        language: 'zh-CN',
+      distractionFreeMode: false
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

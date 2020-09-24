@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"penitence1992.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="背景最近项目部署的时候，好像资源不太够了，然后pod运行到了跑数据库的节点上，导致节点超负荷，然后死机了。 针对这个问题，只好对现有的部署的Helm进行改造了，通过添加Taints和Tolerations来保护节点和让节点运行特定的服务">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2020-09-17-使用Taints和Tolerations">
+<meta property="og:url" content="https://penitence1992.github.io/blog/3583424469.html">
+<meta property="og:site_name" content="脑容量垃圾回收站">
+<meta property="og:description" content="背景最近项目部署的时候，好像资源不太够了，然后pod运行到了跑数据库的节点上，导致节点超负荷，然后死机了。 针对这个问题，只好对现有的部署的Helm进行改造了，通过添加Taints和Tolerations来保护节点和让节点运行特定的服务">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-09-17T01:20:00.000Z">
+<meta property="article:modified_time" content="2020-09-17T01:20:00.000Z">
+<meta property="article:author" content="Penitence">
+<meta property="article:tag" content="k8s">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://penitence1992.github.io/blog/3583424469.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>2020-09-17-使用Taints和Tolerations | 脑容量垃圾回收站</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">脑容量垃圾回收站</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">知识归处</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://penitence1992.github.io/blog/3583424469.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/image/other/avatar.jpg">
+      <meta itemprop="name" content="Penitence">
+      <meta itemprop="description" content="一个弱小无助的程序员">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="脑容量垃圾回收站">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          2020-09-17-使用Taints和Tolerations
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-17 09:20:00" itemprop="dateCreated datePublished" datetime="2020-09-17T09:20:00+08:00">2020-09-17</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/k8s/" itemprop="url" rel="index"><span itemprop="name">k8s</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/k8s/%E8%B5%84%E6%BA%90%E8%B0%83%E5%BA%A6/" itemprop="url" rel="index"><span itemprop="name">资源调度</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近项目部署的时候，好像资源不太够了，然后pod运行到了跑数据库的节点上，导致节点超负荷，然后死机了。</p>
+<p>针对这个问题，只好对现有的部署的Helm进行改造了，通过添加<code>Taints</code>和<code>Tolerations</code>来保护节点和让节点运行特定的服务</p>
+<a id="more"></a>
+
+<h2 id="Taints-污点"><a href="#Taints-污点" class="headerlink" title="Taints(污点)"></a>Taints(污点)</h2><p>中文翻译过来就是污点(不知道为什么叫污点), 用于排斥特定的pod。</p>
+<p>使用<code>kubectl taint</code>命令可以给节点添加一个污点:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl taint nodes k8s-master-1 [key]=[value][:[NoSchedule]]</span><br></pre></td></tr></table></figure>
+
+<p>这样就可以给节点添加上一个污点了, 他的键名是<code>key</code>, 值是<code>value</code>, <code>:</code>后追加的是效果(<code>effect</code>)<code>NoSchedule</code></p>
+<p>删除污点的话只需要key和效果即可, 例如:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl taint nodes k8s-master-1 [key][:[NoSchedule]]-</span><br></pre></td></tr></table></figure>
+
+<p>污点的效果(effect)目前有这几类:</p>
+<ul>
+<li><p>NoSchedule: 不允许调度, 但是已运行在上面的pod不会被驱逐, 后续pod不允许调度到该节点上</p>
+</li>
+<li><p>PreferNoSchedule: 这个值表示<code>尽量避免</code>调度到该节点上, 但是如果资源不够用的时候, 还是会调度到该节点上的, 相当于<code>NoSchedule</code>的软限制版本</p>
+</li>
+<li><p>NoExecute:  表示该节点不允许调度, 同时如果有不允许的节点在这允许, 同时会被驱逐, 但是可以通过设置<code>tolerations</code>中的<code>tolerationSeconds</code>参数来设置运行停留多长时间</p>
+</li>
+</ul>
+<p>因为一个节点可以添加多个污点, 因此调度器处理这些污点的时候, 是通过类似过滤器一样的形式来处理的:</p>
+<p>遍历节点的所有污点, 过滤掉和容忍度匹配的污点, 然后如果还剩下污点, 则剩下的污点决定了调度器的行为</p>
+<p>例如:</p>
+<ul>
+<li><p>如果至少存在一个<code>effect</code>为<code>NoSchedule</code>的污点, 则不会分配pod到该节点</p>
+</li>
+<li><p>如果不存在<code>NoSchedule</code>但是存在<code>PreferNoSchedule</code>, 则尽量避免分配到该节点</p>
+</li>
+<li><p>如果至少存在一个<code>NoExecute</code>, 则不会分配到节点, 并且会驱逐在节点上运行的</p>
+</li>
+</ul>
+<h2 id="Tolerations-容忍度"><a href="#Tolerations-容忍度" class="headerlink" title="Tolerations(容忍度)"></a>Tolerations(容忍度)</h2><p><code>Tolerations</code>设置就是为了配合<code>Taints</code>来使用的, 表示该pod是能够容忍这些污点的, 例如:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">tolerations:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">key:</span> <span class="string">&quot;key1&quot;</span></span><br><span class="line">  <span class="attr">operator:</span> <span class="string">&quot;Equal&quot;</span></span><br><span class="line">  <span class="attr">value:</span> <span class="string">&quot;value1&quot;</span></span><br><span class="line">  <span class="attr">effect:</span> <span class="string">&quot;NoSchedule&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>它表示的是能容忍<code>key1=value1:NoSchedule</code>这个污点</p>
+<p>同时<code>operator</code>有两个值:</p>
+<ul>
+<li><p>Equal : 需要配合value使用, 表示key=value必须要匹配</p>
+</li>
+<li><p>Exists: 不需要value, 表示存在键值<code>key</code>就匹配了</p>
+</li>
+</ul>
+<blockquote>
+<p>ps: 有个特殊情况, 例如我们需要容忍所有的污点怎么写呢??</p>
+<p>这里的配合使用由两种特殊情况:</p>
+<ol>
+<li><p>如果<code>key</code>为空, 而且<code>operator</code>为<code>Exists</code>, 表示这个容忍度与任意的 key 、value 和 effect 都匹配，即这个容忍度能容忍任意 taint。</p>
+</li>
+<li><p>如果<code>effect</code>为空，则表示能容忍所有<code>effect</code></p>
+</li>
+</ol>
+</blockquote>
+<h2 id="1-18新增基于污点驱逐"><a href="#1-18新增基于污点驱逐" class="headerlink" title="1.18新增基于污点驱逐"></a>1.18新增基于污点驱逐</h2><p>在 k8s 1.18中, 新增功能</p>
+<p>节点调度器会在特定情况下, 为Node节点添加污点来实现驱逐:</p>
+<ul>
+<li><p><code>node.kubernetes.io/not-ready</code>: 节点未准备好, 相当于节点的<code>Ready</code>状态的值为<code>False</code></p>
+</li>
+<li><p><code>node.kubernetes.io/unreachable</code>: 节点控制器无法访问到节点, 相当于<code>Ready</code>为<code>Unknow</code></p>
+</li>
+<li><p><code>node.kubernetes.io/out-of-disk</code>: 节点磁盘耗尽</p>
+</li>
+<li><p><code>node.kubernetes.io/memory-pressure</code>: 存在内存压力</p>
+</li>
+<li><p><code>node.kubernetes.io/disk-pressure</code>: 磁盘压力</p>
+</li>
+<li><p><code>node.kubernetes.io/network-unavailable</code>: 节点网络不可达</p>
+</li>
+<li><p><code>node.kubernetes.io/unschedulable</code> : 节点不可调度</p>
+</li>
+<li><p><code>node.cloudprovider.kubernetes.io/uninitialized</code> : 如果 kubelet 启动时指定了一个 “外部” 云平台驱动， 它将给当前节点添加一个污点将其标志为不可用。在 cloud-controller-manager 的一个控制器初始化这个节点后，kubelet 将删除这个污点。</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/k8s/" rel="tag"># k8s</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog/541448823.html" rel="prev" title="2020-09-14-Loki基于标签的日志收集">
+      <i class="fa fa-chevron-left"></i> 2020-09-14-Loki基于标签的日志收集
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/blog/879733089.html" rel="next" title="最近听到的好歌">
+      最近听到的好歌 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Taints-%E6%B1%A1%E7%82%B9"><span class="nav-number">2.</span> <span class="nav-text">Taints(污点)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tolerations-%E5%AE%B9%E5%BF%8D%E5%BA%A6"><span class="nav-number">3.</span> <span class="nav-text">Tolerations(容忍度)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-18%E6%96%B0%E5%A2%9E%E5%9F%BA%E4%BA%8E%E6%B1%A1%E7%82%B9%E9%A9%B1%E9%80%90"><span class="nav-number">4.</span> <span class="nav-text">1.18新增基于污点驱逐</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Penitence"
+      src="/image/other/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Penitence</p>
+  <div class="site-description" itemprop="description">一个弱小无助的程序员</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/penitence1992" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;penitence1992" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Penitence</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">53k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">48 分钟</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'f999241b0a8fde71f64c',
+      clientSecret: 'bac789c0766bed290f2b189e3e6d974e2b4afdf0',
+      repo        : 'penitence1992.github.io',
+      owner       : 'penitence1992',
+      admin       : ['penitence1992'],
+      id          : 'cb6a7fe2b70bc6b27f9d3ceebf57c0c7',
+        language: 'zh-CN',
+      distractionFreeMode: false
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
