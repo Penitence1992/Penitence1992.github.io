@@ -19,7 +19,7 @@ jobs:
         run: |
           echo "##[set-output name=releaseName;]$(if [ "${GITHUB_REF##*/}" = "master" ]; then echo "latest"; else echo "${GITHUB_REF##*/}"; fi)"
           echo "##[set-output name=buildStamp;]"$(date -u '+%Y-%m-%d_%I:%M:%S%p')
-          DOCKER_PLATFORMS=linux/arm64,linux/amd64,linux/arm/v7
+          DOCKER_PLATFORMS=linux/amd64
           echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
             --output "type=image,push=true" \
             --build-arg gitCommit=${GITHUB_SHA::8} \
