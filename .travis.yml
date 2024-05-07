@@ -1,6 +1,16 @@
+os:
+  - linux
+
 language: node_js
 
 node_js: stable
+
+env:
+  global:
+    - IMAGE=penitence/blog:latest
+
+services:
+  - docker
 
 install:
   - yarn install
@@ -12,15 +22,11 @@ before_script:
 script:
   - hexo clean
   - hexo generate
+  - docker build -t $IMAGE -f Dockerfile .
 
-after_script:
-  - cd ./public
-  - git init
-  - git config user.name "penitence1992"
-  - git config user.email "penitence.renjie@gmail.com"
-  - git add .
-  - git commit -m "${TRAVIS_COMMIT_MESSAGE}"
-  - git push --force --quiet "https://${GH_TOKEN}@github.com/Penitence1992/Penitence1992.github.io.git" master:gh-pages
+after_success:
+  - docker login -u="$USERNAME" -p="$PASSWORD"
+  - docker push $IMAGE
 
 branches:
   only:
