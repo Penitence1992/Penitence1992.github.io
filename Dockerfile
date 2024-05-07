@@ -3,7 +3,7 @@ FROM node:14.17.0-alpine AS build
 WORKDIR /app
 
 COPY . /app/
-RUN yarn install && hexo clean && hexo generate
+RUN yarn install && npx hexo clean && npx hexo generate
 
 
 FROM nginx:1.26.0-alpine
